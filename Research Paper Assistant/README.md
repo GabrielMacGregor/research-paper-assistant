@@ -59,49 +59,95 @@ _Run `make eval` on a machine with Ollama + populated ChromaDB to fill in real s
 
 Attention Is All You Need · BERT · GPT-3 · RAG · DPR · ColBERT · FAISS · LoRA · InstructGPT · Constitutional AI · Chain-of-Thought · ReAct · Self-Consistency · Mistral 7B · CLIP · LLaMA · Stable Diffusion · DALL-E · Vision Transformer · Neural Turing Machine · Memory Networks · World Models · Decision Transformer · Diffusion Models · AlphaCode
 
-## Quick Start
+## Running Locally (GPU machine)
 
-**Requirements:** Python 3.11+, Ollama installed with `mistral:7b` pulled, NVIDIA GPU (4GB+ VRAM recommended).
+> Requires: Python 3.11+, [Ollama](https://ollama.com/download), NVIDIA GPU (4GB+ VRAM recommended)
+
+### Step 1 — Clone and install
 
 ```bash
-# Install dependencies
+git clone https://github.com/GabrielMacGregor/research-paper-assistant.git
+cd research-paper-assistant
 pip install -r requirements.txt
+```
 
-# Pull the LLM (one-time)
+### Step 2 — Start Ollama and pull the model
+
+```bash
+# Start Ollama (keep this terminal open)
+ollama serve
+
+# In a new terminal, pull the model (one-time, ~4GB download)
 ollama pull mistral:7b
+```
 
-# Build the knowledge base (download PDFs → parse → embed → store)
+### Step 3 — Build the knowledge base
+
+This downloads all 25 arXiv PDFs, parses them, generates embeddings, and stores them in ChromaDB. Takes ~10-15 minutes on first run.
+
+```bash
 make pipeline
+```
 
-# Ask a question
-make ask QUERY="What is the attention mechanism in Transformers?"
+Individual steps if needed:
+```bash
+make download   # download 25 PDFs from arXiv
+make ingest     # parse PDFs → text chunks
+make embed      # generate embeddings → ChromaDB
+```
 
-# Launch the UI
+### Step 4 — Launch the UI
+
+```bash
 make ui
+# → open http://localhost:8501
 ```
 
-## Docker
+### Step 5 — Run RAGAS evaluation (optional, ~15-45 min)
 
 ```bash
-# Build
-docker build -t research-paper-assistant .
-
-# Run (connects to Ollama on host)
-docker run -p 8501:7860 \
-  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
-  research-paper-assistant
-```
-
-## Running RAGAS Evaluation
-
-```bash
-make eval-sample   # 5 questions (~5-10 min)
-make eval          # 25 questions (~15-45 min)
+make eval-sample   # quick test: 5 questions (~5-10 min)
+make eval          # full eval: 25 questions (~15-45 min)
 ```
 
 Results are saved to:
 - `evaluation/results/ragas_report.md` — human-readable score table
-- `evaluation/results/ragas_scores.json` — full per-question breakdown
+- `evaluation/results/ragas_scores.json` — full per-question breakdown (also shown in UI sidebar)
+
+After running `make eval`, commit `ragas_scores.json` to update the HF Spaces demo:
+```bash
+git add evaluation/results/ragas_scores.json
+git commit -m "chore: update RAGAS scores"
+git push
+```
+
+### Ask a question from the terminal
+
+```bash
+make ask QUERY="What is the attention mechanism in Transformers?"
+make ask QUERY="How does LoRA reduce trainable parameters?"
+make ask QUERY="What is the difference between RAG-Sequence and RAG-Token?"
+```
+
+---
+
+## Docker
+
+```bash
+# Build (~10 min first time — downloads CPU torch)
+make docker-build
+
+# Run (connects to Ollama on host)
+make docker-run
+# → open http://localhost:8501
+```
+
+Or with full control:
+```bash
+docker run -p 8501:7860 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  research-paper-assistant
+```
 
 ## Project Structure
 
