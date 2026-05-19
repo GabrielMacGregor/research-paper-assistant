@@ -149,3 +149,29 @@ def test_ask_no_context_sets_empty_query(settings):
     with patch("src.pipeline.retrieve", return_value=[]):
         response = ask("irrelevant question", settings)
     assert response.query == "irrelevant question"
+
+
+def test_ask_stream_returns_sources_and_generator(sample_chunks, settings):
+    mock_llm = MagicMock()
+    mock_llm.stream.return_value = [
+        MagicMock(content="token1"),
+        MagicMock(content="token2"),
+    ]
+    with patch("src.pipeline.retrieve", return_value=sample_chunks), \
+         patch("src.pipeline.get_llm", return_value=mock_llm):
+        from src.pipeline import ask_stream
+        sources, chunks, gen = ask_stream("What is attention?", settings)
+
+    assert len(sources) == 2
+    assert sources[0].title == "Attention Is All You Need"
+    assert list(gen) == ["token1", "token2"]
+
+
+def test_ask_stream_no_context_yields_fallback(settings):
+    with patch("src.pipeline.retrieve", return_value=[]):
+        from src.pipeline import ask_stream
+        sources, chunks, gen = ask_stream("unknown question", settings)
+
+    assert sources == []
+    assert chunks == []
+    assert list(gen) == [NO_CONTEXT_REPLY]

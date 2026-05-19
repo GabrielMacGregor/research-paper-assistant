@@ -1,4 +1,4 @@
-.PHONY: install download ingest embed pipeline ask eval eval-sample test lint format check
+.PHONY: install download ingest embed pipeline ask eval eval-sample ui test lint format check
 
 install:
 	pip install -r requirements.txt
@@ -33,6 +33,9 @@ eval:
 
 eval-sample:
 	python evaluation/eval.py --sample 5
+
+ui:
+	streamlit run app/main.py
 
 check: lint test
 	@echo "All checks passed."

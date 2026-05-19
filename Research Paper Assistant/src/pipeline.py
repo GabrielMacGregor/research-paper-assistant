@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+from collections.abc import Generator
 from dataclasses import dataclass
 
 from config.settings import Settings
@@ -88,6 +89,41 @@ def ask(query: str, settings: Settings | None = None) -> RAGResponse:
         context_chunks=chunks,
         query=query,
     )
+
+
+def ask_stream(
+    query: str,
+    settings: Settings | None = None,
+) -> tuple[list[Source], list[dict], Generator[str, None, None]]:
+    """Streaming variant of ask().
+
+    Returns (sources, context_chunks, token_generator) so the caller can
+    render sources before streaming starts, then yield tokens into st.write_stream.
+    ask() is unchanged — all existing tests remain valid.
+    """
+    if settings is None:
+        settings = Settings()
+
+    chunks = retrieve(query, settings)
+
+    if not chunks:
+        logger.warning("No relevant chunks found for query.")
+
+        def _no_context() -> Generator[str, None, None]:
+            yield NO_CONTEXT_REPLY
+
+        return [], [], _no_context()
+
+    context = _build_context(chunks)
+    sources = _extract_sources(chunks)
+    llm = get_llm(settings)
+    messages = RAG_PROMPT.format_messages(context=context, question=query)
+
+    def _stream() -> Generator[str, None, None]:
+        for chunk in llm.stream(messages):
+            yield chunk.content
+
+    return sources, chunks, _stream()
 
 
 if __name__ == "__main__":
