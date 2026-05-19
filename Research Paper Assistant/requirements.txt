@@ -1,0 +1,35 @@
+# PDF parsing
+pymupdf==1.27.2
+
+# LangChain ecosystem
+langchain==0.3.25
+langchain-core==0.3.57
+langchain-huggingface==1.2.1
+langchain-ollama==1.1.0
+langchain-text-splitters==0.3.8
+
+# Embeddings (transitive dep of langchain-huggingface, pinned for stability)
+sentence-transformers==5.5.0
+
+# Vector store
+chromadb==1.5.9
+
+# Config
+pydantic>=2.0,<2.13
+pydantic-settings==2.8.1
+python-dotenv==1.1.0
+
+# Utils
+requests==2.32.3
+tqdm==4.67.1
+
+# RAGAS evaluation (Phase 3 — installed now to avoid dep conflicts later)
+ragas==0.2.15
+openai==1.82.0
+
+# Testing
+pytest==8.3.5
+pytest-cov==6.1.0
+
+# Dev
+ruff==0.11.10
