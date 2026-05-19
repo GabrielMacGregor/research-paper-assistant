@@ -1,0 +1,42 @@
+{
+  "project": {
+    "name": "Research Paper Assistant",
+    "code": "RPA",
+    "type": "portfolio",
+    "version": "0.1.0"
+  },
+  "workflow": {
+    "require_plan_approval": true,
+    "require_phase_review": true,
+    "auto_commit_phases": true,
+    "phase_branch_strategy": "main",
+    "test_before_complete": true
+  },
+  "models": {
+    "profile": "quality",
+    "planning": "claude-sonnet-4-6",
+    "execution": "claude-sonnet-4-6",
+    "review": "claude-sonnet-4-6"
+  },
+  "integrations": {
+    "llm_providers": ["openai", "google-gemini"],
+    "llm_default": "openai",
+    "embeddings_provider": "huggingface",
+    "embeddings_model": "BAAI/bge-small-en-v1.5",
+    "vector_store": "chromadb",
+    "evaluation_framework": "ragas",
+    "ui_framework": "streamlit",
+    "deploy_target": "huggingface-spaces"
+  },
+  "quality_gates": {
+    "ragas_faithfulness_min": 0.85,
+    "ragas_answer_relevancy_min": 0.80,
+    "ragas_context_precision_min": 0.75,
+    "min_test_coverage": 70,
+    "ci_required": true
+  },
+  "phases": {
+    "naming_convention": "{n}-{slug}",
+    "state_tracking": true
+  }
+}
