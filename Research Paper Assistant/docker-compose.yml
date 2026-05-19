@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:7860"
+    environment:
+      - EMBEDDING_DEVICE=cpu
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    volumes:
+      - ./data/chroma_db:/home/user/app/data/chroma_db
+      - ./evaluation/results:/home/user/app/evaluation/results

@@ -1,4 +1,4 @@
-.PHONY: install download ingest embed pipeline ask eval eval-sample ui test lint format check
+.PHONY: install download ingest embed pipeline ask eval eval-sample ui docker-build docker-run test lint format check
 
 install:
 	pip install -r requirements.txt
@@ -23,10 +23,10 @@ test:
 	pytest tests/ -v --cov=src --cov-report=term-missing
 
 lint:
-	ruff check src/ tests/ scripts/
+	ruff check src/ tests/ scripts/ evaluation/ app/
 
 format:
-	ruff format src/ tests/ scripts/
+	ruff format src/ tests/ scripts/ evaluation/ app/
 
 eval:
 	python evaluation/eval.py
@@ -36,6 +36,14 @@ eval-sample:
 
 ui:
 	streamlit run app/main.py
+
+docker-build:
+	docker build -t research-paper-assistant .
+
+docker-run:
+	docker run -p 8501:7860 \
+		-e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+		research-paper-assistant
 
 check: lint test
 	@echo "All checks passed."

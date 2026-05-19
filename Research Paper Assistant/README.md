@@ -1,4 +1,19 @@
+---
+title: Research Paper Assistant
+emoji: 📚
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Research Paper Assistant
+
+[![CI](https://github.com/GabrielMacGregor/research-paper-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/GabrielMacGregor/research-paper-assistant/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![Streamlit](https://img.shields.io/badge/streamlit-1.45-red)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 A production-quality RAG (Retrieval-Augmented Generation) system for querying 25 landmark AI/ML papers. Fully local — zero API cost — with quantitative RAGAS evaluation.
 
@@ -12,6 +27,33 @@ A production-quality RAG (Retrieval-Augmented Generation) system for querying 25
 | Retrieval | Semantic search + MMR (Maximal Marginal Relevance) |
 | Evaluation | RAGAS 0.2.x — Faithfulness, Answer Relevancy, Context Precision |
 | Framework | LangChain, PyMuPDF, pydantic-settings |
+
+## Architecture
+
+```
+PDFs (arXiv)
+    └── PyMuPDF parsing
+            └── LangChain chunking (512 tokens, 50 overlap)
+                    └── BAAI/bge-small-en-v1.5 embeddings
+                            └── ChromaDB (local persist)
+
+User question
+    └── Embed query
+            └── Semantic search + MMR reranking (top-5)
+                    └── LangChain prompt template
+                            └── Ollama mistral:7b (local)
+                                    └── Cited answer + RAGAS scores
+```
+
+## RAGAS Evaluation
+
+| Metric | Score | Threshold | Status |
+|---|---|---|---|
+| Faithfulness | — | ≥ 0.85 | Run `make eval` |
+| Answer Relevancy | — | ≥ 0.80 | Run `make eval` |
+| Context Precision | — | ≥ 0.75 | Run `make eval` |
+
+_Run `make eval` on a machine with Ollama + populated ChromaDB to fill in real scores._
 
 ## Corpus — 25 Papers
 
@@ -33,23 +75,33 @@ make pipeline
 
 # Ask a question
 make ask QUERY="What is the attention mechanism in Transformers?"
+
+# Launch the UI
+make ui
+```
+
+## Docker
+
+```bash
+# Build
+docker build -t research-paper-assistant .
+
+# Run (connects to Ollama on host)
+docker run -p 8501:7860 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  research-paper-assistant
 ```
 
 ## Running RAGAS Evaluation
 
 ```bash
-# Quick check — 5 questions (~5-10 min)
-make eval-sample
-
-# Full evaluation — 25 questions (~15-45 min)
-make eval
+make eval-sample   # 5 questions (~5-10 min)
+make eval          # 25 questions (~15-45 min)
 ```
 
 Results are saved to:
-- `evaluation/results/ragas_report.md` — human-readable score table (committed)
-- `evaluation/results/ragas_scores.json` — full per-question breakdown (gitignored)
-
-**Target thresholds:** Faithfulness ≥ 0.85 · Answer Relevancy ≥ 0.80 · Context Precision ≥ 0.75
+- `evaluation/results/ragas_report.md` — human-readable score table
+- `evaluation/results/ragas_scores.json` — full per-question breakdown
 
 ## Project Structure
 
@@ -63,22 +115,23 @@ evaluation/
   test_questions.json    25 Q&A pairs with reference answers (5 categories)
   eval.py                RAGAS evaluation pipeline
   results/               score outputs
-scripts/
-  download_papers.py     arXiv PDF downloader (rate-limited, idempotent)
+app/
+  main.py                Streamlit entrypoint
+  components/            chat, sources, paper_browser, eval_dashboard
 src/
   ingestion.py           PDF parsing + chunking (PyMuPDF)
   embeddings.py          HuggingFace embeddings → ChromaDB
   retriever.py           semantic search + MMR
-  pipeline.py            full RAG pipeline: query → answer + citations
+  pipeline.py            full RAG pipeline + streaming variant
   llm.py                 Ollama LLM wrapper
   prompts.py             system prompt template
-tests/                   36 unit tests (all mocked — no GPU needed)
+tests/                   44 unit tests (all mocked — no GPU needed)
 ```
 
 ## Development
 
 ```bash
-make test       # run 36 unit tests (no GPU required)
+make test       # run 44 unit tests (no GPU required)
 make lint       # ruff check
 make check      # lint + test
 ```
@@ -89,9 +142,9 @@ make check      # lint + test
 |---|---|---|
 | 1 — Data Pipeline | Download → parse → embed → ChromaDB | Complete |
 | 2 — RAG Pipeline | Retrieve → prompt → Ollama → cited response | Complete |
-| 3 — RAGAS Evaluation | 25 Q&A pairs + local LLM judge + score report | Complete (needs GPU to run) |
-| 4 — Streamlit UI | Chat interface + paper browser + RAGAS dashboard | **Pending** |
-| 5 — Infrastructure | Docker + GitHub Actions CI/CD + Hugging Face Spaces deploy | **Pending** |
+| 3 — RAGAS Evaluation | 25 Q&A pairs + local LLM judge + score report | Complete |
+| 4 — Streamlit UI | Streaming chat + paper browser + RAGAS dashboard | Complete |
+| 5 — Infrastructure | Docker + GitHub Actions CI/CD + HF Spaces deploy | Complete |
 
 ## Configuration
 
