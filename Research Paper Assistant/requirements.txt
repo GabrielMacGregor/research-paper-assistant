@@ -22,6 +22,7 @@ python-dotenv==1.1.0
 # Utils
 requests==2.32.3
 tqdm==4.67.1
+numpy>=1.26,<3.0
 
 # RAGAS evaluation (Phase 3 — installed now to avoid dep conflicts later)
 ragas==0.2.15

@@ -1,4 +1,4 @@
-.PHONY: install download ingest embed pipeline test lint format check
+.PHONY: install download ingest embed pipeline ask test lint format check
 
 install:
 	pip install -r requirements.txt
@@ -14,6 +14,10 @@ embed:
 
 pipeline: download ingest embed
 	@echo "Pipeline complete — ChromaDB is ready."
+
+ask:
+	@if [ -z "$(QUERY)" ]; then echo "Usage: make ask QUERY='your question here'"; exit 1; fi
+	python src/pipeline.py --query "$(QUERY)"
 
 test:
 	pytest tests/ -v --cov=src --cov-report=term-missing
