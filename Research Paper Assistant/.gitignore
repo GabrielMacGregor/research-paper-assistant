@@ -22,6 +22,9 @@ build/
 .coverage
 htmlcov/
 
+# Evaluation results (large, generated — report committed separately)
+evaluation/results/ragas_scores.json
+
 # OS
 .DS_Store
 Thumbs.db
