@@ -45,10 +45,10 @@
 
 ### Deliverables
 - `src/retriever.py` — semantic search + MMR, configurable K
-- `src/llm.py` — `BaseLLM` abstraction + `OpenAILLM` + `GeminiLLM` implementations
+- `src/llm.py` — `OllamaLLM` wrapper via `langchain-ollama`, model name from `OLLAMA_MODEL` env
 - `src/pipeline.py` — orchestrates retriever + prompt builder + LLM + response formatter
 - `src/prompts.py` — prompt templates with citation instructions
-- `config/settings.py` — pydantic settings loaded from env
+- `config/settings.py` — pydantic settings loaded from env (includes `OLLAMA_BASE_URL`, `OLLAMA_MODEL`)
 
 ### Verification
 - `python src/pipeline.py --query "What is the attention mechanism?"` returns answer with sources
@@ -57,9 +57,9 @@
 
 ### UAT
 - [ ] Query returns `answer`, `sources` (≥1 citation), `context_chunks`
-- [ ] OpenAI mode works with valid `OPENAI_API_KEY`
-- [ ] Gemini mode works with valid `GOOGLE_API_KEY`
-- [ ] Switching providers via `LLM_PROVIDER` env var works without code changes
+- [ ] Ollama is running locally (`ollama serve`) with `mistral:7b` pulled
+- [ ] `python src/pipeline.py --query "..."` connects to Ollama and returns answer
+- [ ] Switching model via `OLLAMA_MODEL=llama3.1:8b` works without code changes
 - [ ] No relevant context → graceful "I couldn't find relevant information" response
 - [ ] Response cites paper name and year
 
@@ -125,7 +125,7 @@
 - [ ] Conversation history persists within session
 - [ ] Paper browser lists all 25 papers
 - [ ] RAGAS scores visible in sidebar (loads from `evaluation/results/ragas_scores.json`)
-- [ ] LLM provider selector works (OpenAI ↔ Gemini)
+- [ ] Ollama model selector works (dropdown lists available local models)
 - [ ] Works on mobile viewport (responsive)
 
 ---

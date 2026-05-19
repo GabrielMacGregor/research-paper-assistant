@@ -19,12 +19,16 @@
     "review": "claude-sonnet-4-6"
   },
   "integrations": {
-    "llm_providers": ["openai", "google-gemini"],
-    "llm_default": "openai",
+    "llm_runtime": "ollama",
+    "llm_default_model": "mistral:7b",
+    "llm_alternative_model": "llama3.1:8b",
+    "llm_base_url": "http://localhost:11434",
+    "llm_fallback_provider": "openai",
     "embeddings_provider": "huggingface",
     "embeddings_model": "BAAI/bge-small-en-v1.5",
     "vector_store": "chromadb",
     "evaluation_framework": "ragas",
+    "evaluation_llm": "ollama",
     "ui_framework": "streamlit",
     "deploy_target": "huggingface-spaces"
   },

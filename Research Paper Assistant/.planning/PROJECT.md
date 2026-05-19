@@ -41,7 +41,7 @@ Candidates applying to AI/ML roles typically show "I connected LangChain + OpenA
 | Chunking | LangChain TextSplitter | Configurable overlap, battle-tested |
 | Embeddings | HuggingFace BAAI/bge-small-en-v1.5 | Free, local, no API cost, strong quality |
 | Vector Store | ChromaDB (local) | Zero cost, persistent, good DX |
-| LLM | OpenAI GPT-4o-mini + Google Gemini Flash | Configurable via .env, both cheap/free |
+| LLM | Ollama (local) — Mistral 7B / Llama 3.1 8B | 100% local, zero API cost, NVIDIA GPU |
 | Evaluation | RAGAS | Industry-standard RAG evaluation framework |
 | Interface | Streamlit | Rapid UI, HF Spaces compatible |
 | Container | Docker | Reproducible environment |
@@ -63,7 +63,7 @@ User Question → Embed → Semantic Search (+ MMR diversity)
                                     ↓
               Prompt template (question + chunks + citation instruction)
                                     ↓
-                    LLM (OpenAI / Gemini — configurable)
+                    Ollama (local) — Mistral 7B ou Llama 3.1 8B
                                     ↓
                    Answer with paper citations + RAGAS scores
 ```

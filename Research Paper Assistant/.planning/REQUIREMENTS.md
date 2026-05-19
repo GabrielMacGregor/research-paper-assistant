@@ -31,11 +31,14 @@ This document defines what the Research Paper Assistant **must do** (functional)
 - **SHOULD** allow configuring K and retrieval strategy via environment variable
 
 ### FR-04 — LLM Integration
-- **MUST** support OpenAI GPT-4o-mini as LLM backend
-- **MUST** support Google Gemini Flash as LLM backend
-- **MUST** select backend via `LLM_PROVIDER` environment variable (`openai` | `gemini`)
+- **MUST** use Ollama as local LLM runtime (zero API cost, runs on NVIDIA GPU)
+- **MUST** support `mistral:7b` as default model (fits in 4GB VRAM, quantized Q4)
+- **MUST** support `llama3.1:8b` as alternative model via `OLLAMA_MODEL` env var
+- **MUST** connect to Ollama via `langchain-ollama` (`OllamaLLM`)
 - **MUST** format prompts to instruct the LLM to answer only from retrieved context
 - **MUST** include citation instructions: response must name the source paper and year
+- **SHOULD** expose model selection in the Streamlit UI (dropdown of available Ollama models)
+- **SHOULD** support optional OpenAI fallback via `LLM_PROVIDER=openai` env var for users without GPU
 
 ### FR-05 — Response Format
 - **MUST** return a structured response containing:
@@ -49,6 +52,7 @@ This document defines what the Research Paper Assistant **must do** (functional)
 - **MUST** run RAGAS metrics on a curated test set of ≥20 question-answer pairs
 - **MUST** report: `faithfulness`, `answer_relevancy`, `context_precision`
 - **MUST** output results as JSON to `evaluation/results/ragas_scores.json`
+- **MUST** configure RAGAS to use the local Ollama LLM as judge (via `langchain_ollama`)
 - **SHOULD** display results as a visual summary in Streamlit sidebar
 
 ### FR-07 — Streamlit Interface
@@ -57,7 +61,7 @@ This document defines what the Research Paper Assistant **must do** (functional)
 - **MUST** show cited sources for each response
 - **MUST** include a paper browser (list of indexed papers with metadata)
 - **SHOULD** display the latest RAGAS scores in the sidebar
-- **SHOULD** allow the user to select LLM provider from the UI
+- **SHOULD** allow the user to select Ollama model from the UI (dropdown)
 
 ### FR-08 — CLI Tooling
 - **MUST** provide CLI scripts for:
@@ -100,13 +104,17 @@ This document defines what the Research Paper Assistant **must do** (functional)
 - No sensitive data in Docker image layers
 
 ### NFR-06 — Cost
-- Default configuration (HF embeddings + Gemini Flash) must be runnable at zero API cost
-- OpenAI mode cost per query ≤ $0.01 for typical paper question
+- All components run locally with zero API cost
+- Embeddings: HuggingFace local model (free)
+- LLM: Ollama local inference (free, requires NVIDIA GPU 4GB+)
+- Vector store: ChromaDB on disk (free)
+- RAGAS evaluation: uses same local Ollama LLM as judge (free)
 
 ### NFR-07 — Maintainability
-- LLM provider abstraction behind a single interface (`BaseLLM`)
+- LLM access via `langchain-ollama` `OllamaLLM` — easy to swap model without code change
 - Embedding provider abstraction behind a single interface (`BaseEmbedder`)
 - Each module testable in isolation with mocked dependencies
+- Ollama model name configurable via `OLLAMA_MODEL` env var (default: `mistral:7b`)
 
 ---
 
@@ -115,10 +123,12 @@ This document defines what the Research Paper Assistant **must do** (functional)
 | Constraint | Value |
 |---|---|
 | Python version | 3.11+ |
+| LLM runtime | Ollama (local, must be running on `localhost:11434`) |
+| Default LLM model | `mistral:7b` (Q4_K_M, ~4.4GB VRAM) |
+| GPU requirement | NVIDIA 4GB+ VRAM (for acceptable inference speed) |
 | ChromaDB | Local persistent (no cloud) |
 | Vector store | ChromaDB only (v1.0) |
-| Deploy target | Hugging Face Spaces (free tier) |
-| HF Spaces RAM | ≤ 16GB (free tier limit) |
+| Deploy target | Hugging Face Spaces (free tier) — Ollama not available; use CPU-only fallback or pre-built demo |
 | Paper format | PDF only |
 | Language | English papers only |
 
